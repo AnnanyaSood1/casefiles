@@ -25,7 +25,8 @@ I cite sources because I want the arguments to be checkable, not because I'm cla
 casefiles/
 ├── README.md
 ├── 2026/
-│   └── 2026-10-09-starlink-india-sovereignty.md
+│   ├── 2026-10-09-starlink-india-sovereignty.md
+│   └── 2026-11-10-ceo-as-attack-surface.md
 └── assets/
     └── pdfs/
 ```
