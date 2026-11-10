@@ -6,13 +6,15 @@ I'm a computer science student. Cybersecurity and geopolitics are hobbies of min
 
 ## What these are, and what they aren't
 
-Everything here is an **independent case study**, written to apply what I'm learning and to clarify my own thinking. Nothing in this repository has been peer-reviewed, commissioned, or published anywhere else — this is simply the way I happen to view a particular incident on the day I wrote the piece.
+Everything here is an **independent case study**, written to apply what I'm learning and to clarify my own thinking. Nothing in this repository has been peer-reviewed, commissioned, or published anywhere else. 
+
+Some case studies examine historical, documented incidents, while others employ **speculative threat modeling and foresight analysis** built on hypothetical or emerging trends at the intersection of technology and geopolitics. 
 
 To be clear about what these are not:
 
 - They are **not whitepapers**.
 - They are **not policy briefings**.
-- They are **not journalism** or reporting.
+- They are **not journalism, news reporting, or statements of actual fact regarding unverified events**.
 - They are **not professional, legal, or security advice**.
 
 I cite sources because I want the arguments to be checkable, not because I'm claiming any special access or authority. Treat these as the notebook of a hobbyist, not the output of an institution.
@@ -35,6 +37,7 @@ casefiles/
 
 ### 2026
 - **2026-10-09** — [Sovereignty on the Spectrum: Starlink and Indian Cyberspace](2026/2026-10-09-starlink-india-sovereignty.md)
+- **2026-11-10** — [The CEO as Attack Surface: The Nvidia Honeytrap and Executive-Level Influence](2026/2026-11-10-ceo-as-attack-surface.md)
 
 ## Method
 
