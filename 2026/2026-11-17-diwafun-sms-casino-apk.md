@@ -23,6 +23,8 @@
 
 On 17 November 2026 an SMS arrived from a commercial-format sender header, `AD-CSTBLR-S`. It said a school refund was waiting and offered a shortened link to "withdraw" it. The message follows a familiar formula: urgency, money, and a hidden destination. The lure (a school refund) has nothing to do with the payload (a casino). That mismatch is typical of bulk campaigns, which swap stories freely while the destination stays fixed.
 
+Public advisories, including those from CERT-In, have focused on APKs that impersonate challans, bills and bank rewards and then steal OTPs.[^3][^4] This sample arrives the same way but carries a different payload: a gambling platform the operator controls end to end and can reshape after installation.
+
 The link resolved as follows (all URLs defanged):
 
 ```mermaid
@@ -63,7 +65,18 @@ urlscan.io independently downloaded the APK from the live URL and recorded the *
 
 **Timeline (2026):** signing key created 13 Jan · APK domain registered ~mid Sep (urlscan: "2 months old") · shared TLS certificate issued 14 Oct · APK built 24 Oct · uploaded to S3 1 Nov · SMS received 17 Nov.
 
-Tools used: Androguard (manifest, certificate, DEX decompilation), UnityPy (asset bundles), dnfile (.NET metadata), urlscan.io and VirusTotal (corroboration).
+**Method.** The APK was analysed in an isolated Linux workspace and never installed or executed.
+
+| Stage | Tooling | Purpose |
+|---|---|---|
+| Delivery chain | HTTP redirect inspection, page retrieval | Resolve the short link, enumerate onward links |
+| Package triage | `sha256sum`, `unzip`, Androguard | Hashes, manifest, permissions, components, certificate |
+| Dalvik code | Androguard decompiler and cross-references | Custom classes, sensitive API callers, embedded URLs |
+| Unity assets | UnityPy | Asset bundles, embedded .NET assemblies, configuration |
+| .NET module | dnfile | Types, methods and strings of `HotUpdate.dll` |
+| Corroboration | VirusTotal (URL), urlscan.io | Independent download, hash match, hosting and certificate data |
+
+> **Limitation.** The game logic is downloaded at runtime and was not in the sample. Static analysis establishes what the app is **able** to do on a device, not what the operator's scripts **currently** tell it to do. Dynamic analysis in an instrumented sandbox is the natural next step.
 
 ---
 
@@ -278,7 +291,7 @@ Defence has to move from scanning files to judging context. An unexpected refund
 - Never install APKs from SMS, WhatsApp or Telegram links. Keep "Install unknown apps" off.
 - If installed: uninstall. Never accept an in-app update that downloads a file. Don't deposit money or upload ID.
 - If you can't uninstall right away, revoke camera and photo access first.
-- Report the SMS on Sanchar Saathi (Chakshu). Report losses or exposed documents on **1930** or cybercrime.gov.in, and tell your bank.[^3]
+- Report the SMS on Sanchar Saathi (Chakshu). Report losses or exposed documents on **1930** or cybercrime.gov.in, and tell your bank.[^5]
 
 **For platforms and responders**
 - Report the five update domains and the distribution domain to the `.top` registry and registrar, and the S3/CloudFront hosting to AWS.
@@ -320,10 +333,27 @@ All network indicators are defanged. The APK itself is deliberately **not** host
 
 ---
 
+## Appendix: Embedded Component Inventory
+
+| Component | Location | Notes |
+|---|---|---|
+| Unity runtime (IL2CPP) | `lib/*/libunity.so`, `libil2cpp.so` | Unity 2019.4.40f1 |
+| xLua (Tencent) | `lib/*/libxlua.so` | Lua VM bridging scripts and C# |
+| HotUpdate.dll | `assets/hotupdatedll` | 1.4 MB .NET assembly; 638 types; Kaixin, Networks, XLua namespaces |
+| HotGameUpdate.dll | `assets/hotgameupdatedll` | 7 KB loader stub |
+| Vuplex WebView | `lib/*/libVuplexWebViewAndroid.so` | In-app browser |
+| Firebase C++ 11.9.0 | `lib/*/libFirebaseCpp*.so` | App and Messaging |
+| Adjust, AppsFlyer | `classes.dex` | Attribution SDKs |
+| NativeShare, NativeGallery | `com.yasirkula.unity` | Share sheet and gallery access |
+
+---
+
 ## References
 
 ## Footnotes
 
 [^1]: urlscan.io, scan of `hxxps://dwibk873fun[.]top/apps/com.diwafun.app.apk`, 17 November 2026 (author's submission).
 [^2]: VirusTotal, URL report for `hxxps://dwibk873fun[.]top/apps/com.diwafun.app.apk`, 17 November 2026.
-[^3]: Department of Telecommunications, *Sanchar Saathi* awareness material. https://sancharsaathi.gov.in/SancharSaathiDocuments/KeepYourselfAwareDocuments/InvestmentScam.pdf. For APK-delivery context, see the CERT-In alert on fake e-challan and bill APKs, reported by the *Free Press Journal*: https://www.freepressjournal.in/mumbai/cert-in-issues-alert-on-apk-malware-fraud-used-by-cybercriminals-to-steal-financial-data-via-fake-e-challan-bill-alerts
+[^3]: CERT-In alert on APK malware spread through fake e-challan and bill messages, as reported by the *Free Press Journal*. https://www.freepressjournal.in/mumbai/cert-in-issues-alert-on-apk-malware-fraud-used-by-cybercriminals-to-steal-financial-data-via-fake-e-challan-bill-alerts
+[^4]: *Moneylife*, "Fraud Alert: From e-Challan, Gas Bill Updates to APK Traps." https://www.moneylife.in/article/fraud-alert-why-seniors-are-in-the-crosshairs/article/fraud-alert-from-echallan-gas-bill-updates-to-apk-traps-how-malware-scams-are-draining-bank-accounts/79996.html
+[^5]: Department of Telecommunications, *Sanchar Saathi* awareness material. https://sancharsaathi.gov.in/SancharSaathiDocuments/KeepYourselfAwareDocuments/InvestmentScam.pdf
