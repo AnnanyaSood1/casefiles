@@ -27,7 +27,7 @@ Public advisories, including those from CERT-In, have focused on APKs that imper
 
 The link resolved as follows (all URLs defanged):
 
-![Delivery chain from SMS to installed app](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig1-delivery-chain.png)
+![Delivery chain from SMS to installed app](../assets/figures/fig1-delivery-chain.png)
 ***Figure 1.** Delivery chain. Once installed, the app keeps pulling its logic from the operator's update servers (step 6).*
 
 | Hop | URL | What it is |
@@ -56,7 +56,7 @@ urlscan.io independently downloaded the APK from the live URL and recorded the *
 | Engine | Unity 2019.4.40f1 (IL2CPP), xLua scripting, HybridCLR hot-update layer |
 | Launcher | `com.google.firebase.MessagingUnityPlayerActivity` |
 
-![Campaign timeline, January to November 2026](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig2-timeline.png)
+![Campaign timeline, January to November 2026](../assets/figures/fig2-timeline.png)
 ***Figure 2.** Campaign timeline (2026): signing key created 13 Jan · APK domain registered ~mid Sep (urlscan: "2 months old") · shared TLS certificate issued 14 Oct · APK built 24 Oct · uploaded to S3 1 Nov · SMS received 17 Nov.*
 
 **Method.** The APK was analysed in an isolated Linux workspace and never installed or executed.
@@ -102,7 +102,7 @@ SHA-256 : 28910525ad45f72667a4d92ee1dbd79a66e11cdf86650d0bd55f25f021e6f331
 
 **Observed absences matter as much.** No `READ_SMS`, `RECEIVE_SMS`, `RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW`, `REQUEST_INSTALL_PACKAGES` or location permissions, and no Accessibility or notification-listener service. Android fixes permissions at install time, so this build **cannot** read SMS or OTPs, record audio, watch UPI or banking apps, or draw overlays, whatever its downloaded scripts say. The manifest also allows unencrypted HTTP (`usesCleartextTraffic="true"`).
 
-![What the app can reach versus what Android blocks](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig3-permission-boundary.png)
+![What the app can reach versus what Android blocks](../assets/figures/fig3-permission-boundary.png)
 ***Figure 3.** The permission boundary. Downloaded scripts cannot move anything from the right column to the left.*
 
 ### 3. The real application is not in the APK
@@ -123,7 +123,7 @@ The package is a thin Unity shell. Its working logic is Lua (run by Tencent's xL
 }
 ```
 
-![Split architecture: APK contents versus operator servers](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig4-architecture.png)
+![Split architecture: APK contents versus operator servers](../assets/figures/fig4-architecture.png)
 ***Figure 4.** Split architecture. Everything a scanner can inspect is generic; everything that decides the user's outcome is downloaded from the operator.*
 
 ```text
@@ -133,7 +133,7 @@ uigamestart,    f1f544c71ecd4a5eeacbfff8fdb77697,  39342, 1.0.220
 uiinitnew,      5d5d6038ae3e0beb7feaa93cb2018f3f,  47228, 1.0.275
 ```
 
-![Bar chart of component revision numbers](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig5-update-revisions.png)
+![Bar chart of component revision numbers](../assets/figures/fig5-update-revisions.png)
 ***Figure 5.** Server-side components have been patched hundreds of times while the installed shell sits at 1.0.3.*
 
 **Observed.** The core module is at revision **1.0.278** while the installed shell is **1.0.3**: hundreds of server-side changes, none reviewed by an app store. No game or business-logic Lua ships in the package. `HotUpdate.dll` contains a `Decrypt` routine, a `LuaDecodeKey` field and the literal `KAIXINGOODLUCK`, which indicates the scripts are encrypted.
@@ -209,7 +209,7 @@ public class IconChange {
 
 ### 8. Attribution indicators
 
-![Pivot map of indicators around DiwaFun](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig6-pivot-map.png)
+![Pivot map of indicators around DiwaFun](../assets/figures/fig6-pivot-map.png)
 ***Figure 6.** Pivot map. Each outer node is an indicator that can be used to find related apps and infrastructure.*
 
 - **Shared backend:** the Firebase project is `rummy66-1ce79`, named after a different gambling brand. This points to a white-label kit reused across brands.
@@ -249,7 +249,7 @@ The VirusTotal figure is a verdict on the URL's reputation, not on the file. Zer
 
 The platform is unlicensed and anonymous, and its odds, balances and withdrawal rules live on the operator's server. Platforms of this kind are widely reported to run a four-step cycle:
 
-![Four-step fraud cycle: acquire, hook, escalate, trap](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig7-fraud-cycle.png)
+![Four-step fraud cycle: acquire, hook, escalate, trap](../assets/figures/fig7-fraud-cycle.png)
 ***Figure 7.** The Phase 1 fraud cycle.*
 
 Because logic is server-side, the operator can treat users differently: pay out promoters to keep testimonials flowing while blocking larger winners. Victims have no regulator to appeal to and no identifiable counterparty.
@@ -258,7 +258,7 @@ Because logic is server-side, the operator can treat users differently: pay out 
 
 Each pathway rests on a capability present in the sample. None has been observed in operation.
 
-![Escalation ladder ranking pathways by severity](../assets/figures/2026/2026-11-17-diwafun-sms-casino-apk/fig8-escalation-ladder.png)
+![Escalation ladder ranking pathways by severity](../assets/figures/fig8-escalation-ladder.png)
 ***Figure 8.** Escalation ladder. Column height shows severity of harm; the pill beneath shows confidence that the pathway is pursued.*
 
 | Pathway | Enabler in the sample | Potential harm | Confidence |
