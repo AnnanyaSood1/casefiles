@@ -26,7 +26,7 @@ casefiles/
 ├── README.md
 ├── 2026/
 │   ├── 2026-10-09-starlink-india-sovereignty.md
-│   └── 2026-11-10-ceo-as-attack-surface.md
+│   └── 2026-11-17-diwafun-sms-casino-apk.md
 └── assets/
     └── pdfs/
 ```
@@ -38,7 +38,7 @@ casefiles/
 
 ### 2026
 - **2026-10-09** — [Sovereignty on the Spectrum: Starlink and Indian Cyberspace](2026/2026-10-09-starlink-india-sovereignty.md)
-- **2026-11-10** — [The CEO as Attack Surface: The Nvidia Honeytrap and Executive-Level Influence](2026/2026-11-10-ceo-as-attack-surface.md)
+- **2026-11-10** — [The CEO as Attack Surface: The Nvidia Honeytrap and Executive-Level Influence](2026/2026-11-17-diwafun-sms-casino-apk.md)
 
 ## Method
 
