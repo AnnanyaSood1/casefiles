@@ -27,15 +27,8 @@ Public advisories, including those from CERT-In, have focused on APKs that imper
 
 The link resolved as follows (all URLs defanged):
 
-```mermaid
-flowchart LR
-    A["SMS lure<br/>AD-CSTBLR-S"] --> B["bit[.]ly/4tehhaX<br/>302 redirect"]
-    B --> C["diwafun[.]vip<br/>Hindi casino page"]
-    C --> D["dwibk873fun[.]top<br/>47 MB APK"]
-    D --> E["Victim device<br/>DiwaFun installed"]
-    E -. "every launch" .-> F["5 rotating .top<br/>update servers"]
-    F -. "encrypted logic" .-> E
-```
+![Delivery chain from SMS to installed app](../assets/figures/fig1-delivery-chain.png)
+***Figure 1.** Delivery chain. Once installed, the app keeps pulling its logic from the operator's update servers (step 6).*
 
 | Hop | URL | What it is |
 |---|---|---|
@@ -60,10 +53,11 @@ urlscan.io independently downloaded the APK from the live URL and recorded the *
 | MD5 | `ff4b560ec262fe176b786f15a85fd75c` |
 | Version | 1.0.3 (versionCode 1000), minSdk 21, targetSdk 34 |
 | Built | 24 October 2026, 10:17 (archive timestamps) |
-| Engine | Unity 2019.4.40f1 (IL2CPP), xLua scripting, Mono hot-update layer |
+| Engine | Unity 2019.4.40f1 (IL2CPP), xLua scripting, HybridCLR hot-update layer |
 | Launcher | `com.google.firebase.MessagingUnityPlayerActivity` |
 
-**Timeline (2026):** signing key created 13 Jan · APK domain registered ~mid Sep (urlscan: "2 months old") · shared TLS certificate issued 14 Oct · APK built 24 Oct · uploaded to S3 1 Nov · SMS received 17 Nov.
+![Campaign timeline, January to November 2026](../assets/figures/fig2-timeline.png)
+***Figure 2.** Campaign timeline (2026): signing key created 13 Jan · APK domain registered ~mid Sep (urlscan: "2 months old") · shared TLS certificate issued 14 Oct · APK built 24 Oct · uploaded to S3 1 Nov · SMS received 17 Nov.*
 
 **Method.** The APK was analysed in an isolated Linux workspace and never installed or executed.
 
@@ -108,9 +102,12 @@ SHA-256 : 28910525ad45f72667a4d92ee1dbd79a66e11cdf86650d0bd55f25f021e6f331
 
 **Observed absences matter as much.** No `READ_SMS`, `RECEIVE_SMS`, `RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW`, `REQUEST_INSTALL_PACKAGES` or location permissions, and no Accessibility or notification-listener service. Android fixes permissions at install time, so this build **cannot** read SMS or OTPs, record audio, watch UPI or banking apps, or draw overlays, whatever its downloaded scripts say. The manifest also allows unencrypted HTTP (`usesCleartextTraffic="true"`).
 
+![What the app can reach versus what Android blocks](../assets/figures/fig3-permission-boundary.png)
+***Figure 3.** The permission boundary. Downloaded scripts cannot move anything from the right column to the left.*
+
 ### 3. The real application is not in the APK
 
-The package is a thin Unity shell. Its working logic is Lua (run by Tencent's xLua) plus a .NET assembly, `HotUpdate.dll`, replaced over the network. The bundled config hard-codes five update servers:
+The package is a thin Unity shell. Its working logic is Lua (run by Tencent's xLua) plus a .NET assembly, `HotUpdate.dll`, replaced over the network. HybridCLR, compiled into the IL2CPP runtime, loads that assembly at run time; the bundled `mscorlib`, `System` and `System.Core` assemblies are its AOT metadata supplements (`LoadMetadataForAOTAssembly`). The bundled config hard-codes five update servers:
 
 ```json
 {
@@ -126,12 +123,18 @@ The package is a thin Unity shell. Its working logic is Lua (run by Tencent's xL
 }
 ```
 
+![Split architecture: APK contents versus operator servers](../assets/figures/fig4-architecture.png)
+***Figure 4.** Split architecture. Everything a scanner can inspect is generic; everything that decides the user's outcome is downloaded from the operator.*
+
 ```text
 hotupdatedll,   661e890a60c057120f876787adf41b5d, 282190, 1.0.278
 hotupdatestart, fabadda95ac4c075c8f77e19f4c4bf84,   6430, 1.0.158
 uigamestart,    f1f544c71ecd4a5eeacbfff8fdb77697,  39342, 1.0.220
 uiinitnew,      5d5d6038ae3e0beb7feaa93cb2018f3f,  47228, 1.0.275
 ```
+
+![Bar chart of component revision numbers](../assets/figures/fig5-update-revisions.png)
+***Figure 5.** Server-side components have been patched hundreds of times while the installed shell sits at 1.0.3.*
 
 **Observed.** The core module is at revision **1.0.278** while the installed shell is **1.0.3**: hundreds of server-side changes, none reviewed by an app store. No game or business-logic Lua ships in the package. `HotUpdate.dll` contains a `Decrypt` routine, a `LuaDecodeKey` field and the literal `KAIXINGOODLUCK`, which indicates the scripts are encrypted.
 
@@ -156,7 +159,7 @@ uiinitnew,      5d5d6038ae3e0beb7feaa93cb2018f3f,  47228, 1.0.275
 
 ### 6. Dormant capabilities disguised as engine code
 
-The only bespoke Java class sits inside Unity's own package namespace, where it passes for engine code:
+The only bespoke Java class identified sits inside Unity's own package namespace, where it passes for engine code:
 
 ```java
 package com.unity3d.player;          // borrowed namespace
@@ -206,10 +209,13 @@ public class IconChange {
 
 ### 8. Attribution indicators
 
+![Pivot map of indicators around DiwaFun](../assets/figures/fig6-pivot-map.png)
+***Figure 6.** Pivot map. Each outer node is an indicator that can be used to find related apps and infrastructure.*
+
 - **Shared backend:** the Firebase project is `rummy66-1ce79`, named after a different gambling brand. This points to a white-label kit reused across brands.
 - **Sibling apps:** `com.kaixin.googleplay`, `com.mainslot.com.apk` and a `Kaixin` C# namespace suggest a vendor or operator group called "Kaixin".
 - **Targeting:** interface text in English, Hindi and Indonesian ("Game Slot Terbaik"; "सबसे बेहतरीन स्लॉट गेम्स"). The audience is India and Indonesia.
-- **Developer language:** Simplified Chinese comments (`复位`, `匀速移动`). This fits outsourced development but does not by itself identify the operator.
+- **Developer language:** Simplified Chinese strings and diagnostics (`复位`, `匀速移动`). This fits outsourced development but does not by itself identify the operator.
 
 ### 9. Negative findings
 
@@ -243,18 +249,17 @@ The VirusTotal figure is a verdict on the URL's reputation, not on the file. Zer
 
 The platform is unlicensed and anonymous, and its odds, balances and withdrawal rules live on the operator's server. Platforms of this kind are widely reported to run a four-step cycle:
 
-```mermaid
-flowchart LR
-    A["1. Acquire<br/>bulk SMS, social ads,<br/>tracked per campaign"] --> B["2. Hook<br/>sign-up bonus,<br/>small early wins"]
-    B --> C["3. Escalate<br/>larger deposits via<br/>in-app web pages"]
-    C --> D["4. Trap<br/>withdrawals blocked,<br/>'tax' or 'unlock' fees"]
-```
+![Four-step fraud cycle: acquire, hook, escalate, trap](../assets/figures/fig7-fraud-cycle.png)
+***Figure 7.** The Phase 1 fraud cycle.*
 
 Because logic is server-side, the operator can treat users differently: pay out promoters to keep testimonials flowing while blocking larger winners. Victims have no regulator to appeal to and no identifiable counterparty.
 
 ### Escalation pathways (Assessed)
 
 Each pathway rests on a capability present in the sample. None has been observed in operation.
+
+![Escalation ladder ranking pathways by severity](../assets/figures/fig8-escalation-ladder.png)
+***Figure 8.** Escalation ladder. Column height shows severity of harm; the pill beneath shows confidence that the pathway is pursued.*
 
 | Pathway | Enabler in the sample | Potential harm | Confidence |
 |---|---|---|---|
@@ -338,6 +343,7 @@ All network indicators are defanged. The APK itself is deliberately **not** host
 | Component | Location | Notes |
 |---|---|---|
 | Unity runtime (IL2CPP) | `lib/*/libunity.so`, `libil2cpp.so` | Unity 2019.4.40f1 |
+| HybridCLR | `lib/*/libil2cpp.so` | Runtime loader for hot-update .NET assemblies |
 | xLua (Tencent) | `lib/*/libxlua.so` | Lua VM bridging scripts and C# |
 | HotUpdate.dll | `assets/hotupdatedll` | 1.4 MB .NET assembly; 638 types; Kaixin, Networks, XLua namespaces |
 | HotGameUpdate.dll | `assets/hotgameupdatedll` | 7 KB loader stub |
